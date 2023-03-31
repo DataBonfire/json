@@ -20,7 +20,7 @@ type Config struct {
 	SortMapKeys                   bool
 	UseNumber                     bool
 	DisallowUnknownFields         bool
-	TagKey                        string
+	TagKey                        []string
 	OnlyTaggedField               bool
 	ValidateJsonRawMessage        bool
 	ObjectFieldMustBeSimpleString bool
@@ -211,12 +211,13 @@ func (cfg *frozenConfig) useNumber(extension DecoderExtension) {
 		}
 	}}
 }
-func (cfg *frozenConfig) getTagKey() string {
+
+func (cfg *frozenConfig) getTagKey() []string {
 	tagKey := cfg.configBeforeFrozen.TagKey
-	if tagKey == "" {
-		return "json"
+	if tagKey == nil {
+		return []string{"json"}
 	}
-	return tagKey
+	return append(tagKey, "json")
 }
 
 func (cfg *frozenConfig) RegisterExtension(extension Extension) {

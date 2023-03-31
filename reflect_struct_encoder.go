@@ -2,10 +2,11 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"io"
 	"reflect"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 func encoderOfStruct(ctx *ctx, typ reflect2.Type) ValEncoder {
@@ -71,8 +72,17 @@ func createCheckIsEmpty(ctx *ctx, typ reflect2.Type) checkIsEmpty {
 }
 
 func resolveConflictBinding(cfg *frozenConfig, old, new *Binding) (ignoreOld, ignoreNew bool) {
-	newTagged := new.Field.Tag().Get(cfg.getTagKey()) != ""
-	oldTagged := old.Field.Tag().Get(cfg.getTagKey()) != ""
+	var newTagged, oldTagged bool
+	for _, key := range cfg.getTagKey() {
+		if newTagged = new.Field.Tag().Get(key) != ""; newTagged {
+			break
+		}
+	}
+	for _, key := range cfg.getTagKey() {
+		if oldTagged = old.Field.Tag().Get(key) != ""; oldTagged {
+			break
+		}
+	}
 	if newTagged {
 		if oldTagged {
 			if len(old.levels) > len(new.levels) {

@@ -2,12 +2,13 @@ package jsoniter
 
 import (
 	"fmt"
-	"github.com/modern-go/reflect2"
 	"reflect"
 	"sort"
 	"strings"
 	"unicode"
 	"unsafe"
+
+	"github.com/modern-go/reflect2"
 )
 
 var typeDecoders = map[string]ValDecoder{}
@@ -337,7 +338,15 @@ func describeStruct(ctx *ctx, typ reflect2.Type) *StructDescriptor {
 	bindings := []*Binding{}
 	for i := 0; i < structType.NumField(); i++ {
 		field := structType.Field(i)
-		tag, hastag := field.Tag().Lookup(ctx.getTagKey())
+		var (
+			tag    string
+			hastag bool
+		)
+		for _, key := range ctx.getTagKey() {
+			if tag, hastag = field.Tag().Lookup(key); hastag {
+				break
+			}
+		}
 		if ctx.onlyTaggedField && !hastag && !field.Anonymous() {
 			continue
 		}
@@ -443,7 +452,13 @@ func (bindings sortableBindings) Swap(i, j int) {
 func processTags(structDescriptor *StructDescriptor, cfg *frozenConfig) {
 	for _, binding := range structDescriptor.Fields {
 		shouldOmitEmpty := false
-		tagParts := strings.Split(binding.Field.Tag().Get(cfg.getTagKey()), ",")
+		var tag string
+		for _, key := range cfg.getTagKey() {
+			if tag = binding.Field.Tag().Get(key); tag != "" {
+				break
+			}
+		}
+		tagParts := strings.Split(tag, ",")
 		for _, tagPart := range tagParts[1:] {
 			if tagPart == "omitempty" {
 				shouldOmitEmpty = true
